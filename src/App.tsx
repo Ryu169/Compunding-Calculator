@@ -46,6 +46,24 @@ const COMPOUNDING_OPTIONS = [
   { label: 'Harian', value: 365 },
 ];
 
+const FREQUENCY_EXPLANATIONS: Record<number, { title: string; summary: string; detail: string }> = {
+  1: {
+    title: 'Tahunan',
+    summary: 'Bunga dihitung 1 kali di akhir tahun dengan basis saldo yang sudah menerima seluruh setoran tahun itu.',
+    detail: 'Sederhana dan konservatif. Efek compounding tumbuh paling lambat karena bunga baru ditambahkan sekali per tahun.',
+  },
+  4: {
+    title: 'Kuartalan',
+    summary: 'Bunga dibagi menjadi 4 periode per tahun, jadi saldo bertambah bunga setiap 3 bulan.',
+    detail: 'Lebih cepat dari tahunan karena setiap bunga kuartal ikut menjadi dasar penghitungan bunga kuartal berikutnya.',
+  },
+  12: {
+    title: 'Bulanan',
+    summary: 'Bunga dibagi menjadi 12 periode per tahun, sehingga saldo menerima bunga setiap bulan.',
+    detail: 'Paling agresif di antara opsi aktif saat ini. Karena bunga lebih cepat masuk ke saldo, efek compounding menjadi paling kuat.',
+  },
+};
+
 export default function App() {
   const [scenarios, setScenarios] = useState<Scenario[]>([
     {
@@ -114,6 +132,12 @@ export default function App() {
 
   const activeData = useMemo(() => calculateData(activeScenario), [activeScenario]);
   const finalResults = activeData[activeData.length - 1];
+  const frequencyExplanation =
+    FREQUENCY_EXPLANATIONS[activeScenario.compoundingFrequency] ?? {
+      title: 'Custom Frequency',
+      summary: `Bunga dihitung ${activeScenario.compoundingFrequency} kali per tahun sesuai pembagian periode yang dipilih.`,
+      detail: 'Semakin sering bunga ditambahkan ke saldo, semakin besar efek compounding dalam jangka panjang.',
+    };
 
   // --- Handlers ---
   const updateScenario = (updates: Partial<Scenario>) => {
@@ -249,6 +273,17 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+                <div className="mt-5 border-t border-editorial-border pt-4 space-y-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-60">
+                    Cara Kerja: {frequencyExplanation.title}
+                  </p>
+                  <p className="text-[11px] leading-relaxed opacity-70">
+                    {frequencyExplanation.summary}
+                  </p>
+                  <p className="text-[11px] leading-relaxed opacity-55 italic">
+                    {frequencyExplanation.detail}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -351,7 +386,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-editorial-border/30">
-                  {activeData.filter((_, i) => i % Math.max(1, Math.floor(activeScenario.years / 10)) === 0 || i === activeData.length - 1).map((row) => (
+                  {activeData.map((row) => (
                     <tr key={row.year} className="hover:bg-editorial-secondary/50 transition-colors group">
                       <td className="py-4 px-2">
                         <span className="font-mono text-[10px] font-bold opacity-60">
@@ -374,6 +409,9 @@ export default function App() {
             </div>
             <p className="mt-6 text-[9px] italic opacity-40 leading-relaxed max-w-lg">
               * The Buying Power estimate is an inflation-adjusted projection at an assumed 3% average rate. Data provided is illustrative and non-binding.
+            </p>
+            <p className="mt-3 text-[10px] leading-relaxed opacity-55 max-w-2xl">
+              Ledger di atas sekarang menampilkan setiap tahun dari tahun 0 sampai tahun akhir. Principal adalah total modal yang sudah Anda setor, Yield adalah akumulasi bunga yang sudah terkumpul, dan Net Value adalah jumlah keduanya pada akhir setiap tahun.
             </p>
           </div>
         </section>
