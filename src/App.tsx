@@ -520,10 +520,40 @@ export default function App() {
 // --- Subcomponents ---
 
 function EditorialInput({ label, value, onChange, format, showFrequencyLabel }: any) {
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState(() => {
+    if (format === 'currency') return Number(value).toLocaleString('id-ID');
+    return value;
+  });
+
+  useEffect(() => {
+    if (format === 'currency') {
+      setLocalValue(Number(value).toLocaleString('id-ID'));
+    } else {
+      setLocalValue(value);
+    }
+  }, [value, format]);
   
+  const handleChange = (e: any) => {
+    const rawValue = e.target.value;
+    if (format === 'currency') {
+      const numericString = rawValue.replace(/\D/g, '');
+      if (numericString === '') {
+        setLocalValue('');
+      } else {
+        setLocalValue(Number(numericString).toLocaleString('id-ID'));
+      }
+    } else {
+      setLocalValue(rawValue);
+    }
+  };
+
   const handleBlur = () => {
-    onChange(Number(localValue));
+    if (format === 'currency') {
+      const numeric = Number(String(localValue).replace(/\D/g, ''));
+      onChange(numeric);
+    } else {
+      onChange(Number(localValue));
+    }
   };
 
   const handleDisplayValue = () => {
@@ -539,9 +569,10 @@ function EditorialInput({ label, value, onChange, format, showFrequencyLabel }: 
       </label>
       <div className="flex items-end gap-3 border-b border-editorial-border group-focus-within:border-editorial-text transition-all py-1">
         <input 
-          type="number" 
+          type={format === 'currency' ? 'text' : 'number'}
+          inputMode={format === 'currency' ? 'numeric' : undefined}
           value={localValue} 
-          onChange={(e) => setLocalValue(e.target.value)}
+          onChange={handleChange}
           onBlur={handleBlur}
           className="flex-1 bg-transparent py-1 text-2xl font-light focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
